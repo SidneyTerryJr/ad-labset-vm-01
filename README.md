@@ -6,11 +6,17 @@
 [![Time](https://img.shields.io/badge/Time%20to%20Complete-3--5%20hours-orange)]()
 [![Platform](https://img.shields.io/badge/Platform-Azure%20%7C%20VirtualBox-informational)]()
 
-
+| Field | Value |
+|---|---|
+| Certification alignment | CompTIA Network+ · Security+ · Azure Administrator |
+| Free tools | Windows Server 2025 Evaluation (180 days) · Azure Free Account |
+| Time to complete | 3–5 hours across multiple sessions |
+| Estimated cost | $0 — fully covered by free tiers and evaluation licenses |
+| Career relevance | IT Support · Sysadmin · Cloud Engineer · Security Analyst |
 
 ---
 
-## Overview
+## The Business Problem This Lab Solves
 
 Every enterprise running Windows infrastructure depends on Active Directory (AD) as the foundation of its identity and access management (IAM) strategy — controlling authentication, authorization, and access governance across the entire environment.
 
