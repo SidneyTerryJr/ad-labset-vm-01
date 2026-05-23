@@ -1,5 +1,5 @@
-# Lab 01 — Active Directory Domain Services
-**Windows Server 2025 · Azure Free Account · Identity & Access Management**
+# Lab 1 — Active Directory 
+**Windows Server 2025 · Azure · Identity & Access Management**
 
 [![Certification](https://img.shields.io/badge/Cert%20Alignment-CompTIA%20Network%2B%20%7C%20Security%2B%20%7C%20Azure%20Administrator-blue)](https://www.comptia.org)
 [![Cost](https://img.shields.io/badge/Estimated%20Cost-%240-brightgreen)](https://azure.microsoft.com/free)
