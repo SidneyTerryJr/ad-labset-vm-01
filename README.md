@@ -6,51 +6,29 @@
 [![Time](https://img.shields.io/badge/Time%20to%20Complete-3--5%20hours-orange)]()
 [![Platform](https://img.shields.io/badge/Platform-Azure%20%7C%20VirtualBox-informational)]()
 
+
+
 ---
 
 ## Overview
 
-Every organisation running Windows infrastructure relies on **Active Directory (AD)** to answer one fundamental question: *who is allowed to do what?*
+Every enterprise running Windows infrastructure depends on Active Directory (AD) as the foundation of its identity and access management (IAM) strategy — controlling authentication, authorization, and access governance across the entire environment.
 
-This lab builds a fully functional Active Directory environment from scratch — domain controller, organisational units, security groups, users, and Group Policy. Every task performed maps directly to real help desk and sysadmin work.
+Active Directory is the identity backbone of on-premises and hybrid cloud architectures. It enforces role-based access control (RBAC), manages privileged access, and applies security policies across users, endpoints, and resources — defining who authenticates to which systems, which security groups control access to file shares and applications, and which Group Policy Objects (GPOs) govern compliance configurations across the domain.
+
+From a zero trust security perspective, AD is where identity verification begins. When a user is provisioned, group membership automatically grants least-privilege access to email, shared drives, and business-critical applications. When a user is offboarded, a single account disable revokes all access simultaneously — reducing the attack surface and eliminating orphaned credentials that threat actors exploit.
+
+This is not legacy technology. Modern hybrid cloud environments synchronize on-premises Active Directory with Microsoft Entra ID (Azure AD) via Azure AD Connect, extending identity management into the cloud. The same core competencies — user lifecycle management, group policy administration, OU structure design, and privileged identity governance — underpin enterprise Azure, Microsoft 365, and cloud security deployments.
+
+Hands-on Active Directory experience is directly applicable to roles in cloud infrastructure, IAM engineering, SOC analysis, and endpoint security — and remains the most targeted system in ransomware and Active Directory attacks such as Pass-the-Hash, Kerberoasting, and DCSync.
 
 > **Career relevance:** IT Support · Sysadmin · Cloud Engineer · Security Analyst
 
 ---
 
 ## Architecture
+<img width="1472" height="1240" alt="image" src="https://github.com/user-attachments/assets/9a4f0fc6-4807-426d-b92d-b7378c6b9957" />
 
-```
-┌─────────────────────────── Azure Free Tier — East US ────────────────────────────┐
-│                                                                                    │
-│  ┌─────────────────────────── Forest: lab.local ──────────────────────────────┐  │
-│  │                                                                              │  │
-│  │              ┌──────────────────────────────────┐                           │  │
-│  │              │        Domain Controller          │                           │  │
-│  │              │  Windows Server 2025 · DNS · ADDS │                           │  │
-│  │              └───────────────┬──────────────────┘                           │  │
-│  │                              │ (authenticates all domain members)            │  │
-│  │       ┌──────────────────────┼──────────────────────┐                       │  │
-│  │       ▼           ▼          ▼          ▼            ▼                       │  │
-│  │  ┌─────────┐ ┌─────────┐ ┌──────┐ ┌─────────┐ ┌──────────┐                │  │
-│  │  │ OU: IT  │ │OU: Fin. │ │OU:HR │ │OU: Sales│ │OU: Comp. │                │  │
-│  │  │a.chen   │ │b.patel  │ │c.jones│ │d.smith │ │Workstns. │                │  │
-│  │  └────┬────┘ └────┬────┘ └──┬───┘ └────┬────┘ └──────────┘                │  │
-│  │       ▼           ▼         ▼           ▼                                   │  │
-│  │  ┌─────────┐ ┌─────────┐ ┌──────┐ ┌─────────┐                             │  │
-│  │  │IT_Admins│ │Finance_ │ │HR_   │ │Sales_   │  ← Security Groups (RBAC)    │  │
-│  │  │  (group)│ │ Users   │ │Users │ │Users    │                              │  │
-│  │  └─────────┘ └─────────┘ └──────┘ └─────────┘                             │  │
-│  │       │                                                                      │  │
-│  │  ┌────▼──────────────────────────┐   ┌──────────────────────────────────┐  │  │
-│  │  │   GPO: IT Security Policy     │   │    Domain-Joined Workstation     │  │  │
-│  │  │  Password · Screen lock · USB │   │   OU=Computers · GPO enforced    │  │  │
-│  │  └───────────────────────────────┘   └──────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────────────────────────────┘  │
-│                                                                                    │
-│   Admin Workstation ──── RDP (port 3389) ──────────────────► Domain Controller    │
-└────────────────────────────────────────────────────────────────────────────────────┘
-```
 
 **Trust boundary summary:**
 
