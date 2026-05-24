@@ -1,4 +1,4 @@
-# Lab 1 — Active Directory 
+## 🔬 Lab 1 — Active Directory 
 *Windows Server 2025 · Azure · Identity & Access Management*
 
 [![Certification](https://img.shields.io/badge/Cert%20Alignment-CompTIA%20Network%2B%20%7C%20Security%2B%20%7C%20Azure%20Administrator-blue)](https://www.comptia.org)
@@ -16,7 +16,7 @@
 
 ---
 
-## The Business Problem This Lab Solves
+## 🫆 The Business Problem This Lab Solves 
 
 Every enterprise running Windows infrastructure depends on Active Directory (AD) as the foundation of its identity and access management (IAM) strategy — controlling authentication, authorization, and access governance across the entire environment.
 
@@ -28,25 +28,17 @@ This is not legacy technology. Modern hybrid cloud environments synchronize on-p
 
 Hands-on Active Directory experience is directly applicable to roles in cloud infrastructure, IAM engineering, SOC analysis, and endpoint security — and remains the most targeted system in ransomware and Active Directory attacks such as Pass-the-Hash, Kerberoasting, and DCSync.
 
-> **Career relevance:** IT Support · Sysadmin · Cloud Engineer · Security Analyst
+> 
+| Role | How this lab applies |
+|---|---|
+| IT Support / Help Desk | Password resets, account unlocks, group membership changes — the top three ticket types in any enterprise |
+| Sysadmin | Designing OU structure, deploying GPOs, managing domain-joined machines at scale |
+| Cloud Engineer | Entra ID (cloud AD) uses the same concepts: users, groups, roles, conditional access. On-prem AD knowledge transfers directly |
+| Security Analyst | AD is the most targeted system in ransomware attacks. Understanding how it works is the foundation of defending it |
 
 ---
 
-## Architecture
-<img width="1472" height="1240" alt="image" src="https://github.com/user-attachments/assets/9a4f0fc6-4807-426d-b92d-b7378c6b9957" />
-
-
-## Trust boundary summary:
-
-| Zone | Components | Access |
-|---|---|---|
-| Public internet | Admin workstation | RDP to DC (port 3389) only |
-| Domain (lab.local) | DC, OUs, workstations | Authenticated domain users |
-| Privileged | IT_Admins group, Domain Admin account | Full AD management |
-
----
-
-## What This Lab Builds
+## 🧱 What This Lab Builds
 
 | Component | Details |
 |---|---|
@@ -60,41 +52,29 @@ Hands-on Active Directory experience is directly applicable to roles in cloud in
 
 ---
 
-## Skills Developed
+## What You Will Need
 
-| Skill | Real-World Application |
-|---|---|
-| Promote a server to Domain Controller | Foundation of every enterprise Windows environment |
-| Create and structure Organisational Units | Apply policies per department without touching individual machines |
-| Create users, groups, and memberships | Role-based access at scale — add one person to a group, inherit all access |
-| Configure Group Policy Objects (GPOs) | Centrally enforce security settings across all domain machines |
-| Join a machine to the domain | Turn a standalone workstation into a managed, policy-enforced resource |
-| Reset passwords and manage account lifecycle | Top-three help desk task in any enterprise |
+Before starting this lab you need **two virtual machines** in Azure. Both must be on the same VNet and subnet so they can communicate with each other.
+
+| VM | Role | Purpose |
+|---|---|---|
+| adVM | Domain Controller | Runs Active Directory, DNS, and Group Policy |
+| client01 | Client workstation | Joins the domain and tests GPO application |
+
+> **Important:** Create both VMs before starting the lab steps. The client VM settings are listed in Step 1 alongside the DC settings. Do not skip this — you will need it in Step 6.
+
+---
+## 📐 Architecture
+<img width="1369" height="1149" alt="image" src="https://github.com/user-attachments/assets/50e9a534-16e2-4216-ae5c-00e47ec38dfb" />
 
 ---
 
-## Prerequisites
+## Step 1 — Provision the Virtual Machine  💻
 
-| Requirement | Notes |
-|---|---|
-| **Azure free account** | [azure.microsoft.com/free](https://azure.microsoft.com/free) — includes $200 credit |
-| **Remote Desktop client** | Windows built-in or [Microsoft Remote Desktop](https://apps.apple.com/app/microsoft-remote-desktop/id1295203466) for macOS |
-| **Basic Windows familiarity** | Navigating Server Manager, PowerShell basics |
 
-> **No Azure account?** VirtualBox (free) + Windows Server 2025 Evaluation ISO (180-day, free) can replace Azure entirely. Minimum host hardware: 8 GB RAM, quad-core CPU with virtualisation enabled in BIOS, 60 GB free disk.
+Sign in to [portal.azure.com](https://portal.azure.com) → **Virtual machines** → **Create**.
 
----
 
-## Step-by-Step Instructions
-
-### Step 1 — Provision the Virtual Machine
-
-**Option A — Azure (Recommended)**
-
-1. Go to [azure.microsoft.com/free](https://azure.microsoft.com/free) and create a free account.
-2. Sign in to [portal.azure.com](https://portal.azure.com).
-3. Search for **Virtual machines** → **Create**.
-4. Use these settings:
 
 | Setting | Value |
 |---|---|
@@ -105,11 +85,11 @@ Hands-on Active Directory experience is directly applicable to roles in cloud in
 | Public inbound ports | Allow RDP (3389) |
 | OS disk | Standard SSD |
 
-5. Click **Review + Create** → **Create**.
+Click **Review + Create** → **Create** and wait for deployment to complete.
 
-> ⚠️ **Stop the VM when not in use.** A B2s VM costs ~$0.05/hour. Stopping (not deleting) pauses compute billing. Your $200 credit lasts significantly longer with disciplined stop/start hygiene.
+---
 
-**Enable clipboard between your machine and the VM:**
+### Enable clipboard between your machine and the VM ###
 
 1. Open the Remote Desktop application on your local machine.
 2. Enter the VM's public IP address.
@@ -121,50 +101,56 @@ Hands-on Active Directory experience is directly applicable to roles in cloud in
 
 ---
 
-**Option B — VirtualBox (Local)**
-
-1. Download [VirtualBox](https://www.virtualbox.org) — free, no account required.
-2. Download the [Windows Server 2025 Evaluation ISO](https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2025) from Microsoft Evaluation Center (180-day free licence).
-3. Create a new VM: 4 GB RAM minimum, 60 GB disk, type = Windows Server 2022.
-4. Mount the ISO and boot. Select **Windows Server 2025 Datacenter with Desktop Experience** during setup.
-
----
-
 ### Step 2 — Install Active Directory Domain Services
 
-RDP into the VM. Server Manager opens automatically on login.
+RDP into adVM the VM using it's public IP address. Server Manager opens automatically on login.
 
-1. Click **Manage → Add Roles and Features**.
-2. Click **Next** until **Server Roles**.
-3. Check **Active Directory Domain Services**.
-4. When prompted, click **Add Features**.
-5. Click **Next** through remaining pages → **Install**.
-6. Wait for completion (2–3 minutes) → **Close**. Do not restart yet.
+> **What is a Domain Controller?**
+> A Domain Controller (DC) is a server that runs Active Directory. It is the brain of the entire identity system. When a user logs in anywhere on the domain their credentials are checked against the Domain Controller. There is usually more than one in an enterprise for redundancy but we are building one here.
+
+In Server Manager: **Manage → Add Roles and Features → Next → Server Roles → check Active Directory Domain Services → Add Features → Install**
+
+Wait for installation to complete — takes 2–3 minutes. When complete click **Close** — do not restart yet.
+
+Or run this in PowerShell on the DC:
+
+```powershell
+Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
+```
+<img width="1847" height="867" alt="adds installed" src="https://github.com/user-attachments/assets/8c65e9a2-2d00-4ee3-83bc-a71a33064ea9" />
 
 ```powershell
 # PowerShell alternative
 Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
 ```
 
-**Install Group Policy Management Console (GPMC) now** — required for Step 5. Without it, the GPO tools will not appear in Server Manager.
+**Install Group Policy Management Console (GPMC) now** — Step 5 requires the Group Policy Management Console. Without it, the GPO tools will not appear in Server Manager. Install it now, so it's configured when you need it.
+
 
 ```powershell
 Install-WindowsFeature -Name GPMC
 ```
+<img width="1872" height="940" alt="pmc-installed" src="https://github.com/user-attachments/assets/7929a66e-ac9f-4bcc-865c-65ead0e045f0" />
+
+> Once GPMC is installed **Group Policy Management** will appear in the Tools menu in Server Manager. This is completely separate from Active Directory Users and Computers — do not look for GPOs inside ADUC.
 
 ---
 
 ### Step 3 — Promote the Server to a Domain Controller
 
 Installing the AD DS role does not create a domain. Promotion creates your forest, domain, and makes this server the authoritative DNS and identity server.
-
+> **What is a Forest and Domain?**
+> A Forest is the top-level container of your entire Active Directory structure. A Domain is a boundary inside the forest with a name — ours is `lab.local`. Most small-to-medium organizations have one domain inside one forest.
+> 
 1. In Server Manager, click the **yellow warning flag** (top right).
 2. Click **Promote this server to a domain controller**.
 3. Select **Add a new forest**.
 4. Set Root domain name to: `lab.local`
-5. Click **Next** — set a DSRM password (write it down — for disaster recovery only).
-6. Accept defaults through DNS Options and NetBIOS pages.
+5. Click **Next** — set a DSRM password write it down
+6. Click through DNS Options and NetBIOS pages - accept the defaults
 7. Click **Install** — the server restarts automatically when complete.
+
+Or promote via Powershell:
 
 ```powershell
 # PowerShell alternative
@@ -177,17 +163,24 @@ Install-ADDSForest `
   -Force:$true
 ```
 
-> After restart, log in as `LAB\Administrator` (not just `Administrator`).
+> After the restart RDP back into adVM. You are now logged into a Domain Controller.
 
 ---
 
 ### Step 4 — Build the Organisational Structure
 
 Open **Active Directory Users and Computers (ADUC)** from **Tools** in Server Manager.
+**It should look like this** ⤵
 
-**Create Organisational Units**
+<img width="942" height="656" alt="adou screenshot" src="https://github.com/user-attachments/assets/fe296260-0557-48cc-a9f3-0e116c987214" />
+
+### Create Organisational Units
+> **What is an Organizational Unit (OU)?**
+> An OU is a folder inside Active Directory. You use OUs to organize users and computers by department. The real power is that you can link a Group Policy to an OU — every user or computer inside automatically gets the policy applied.
 
 Right-click your domain (`lab.local`) → **New → Organizational Unit**. Create one OU per department plus one for computers.
+
+
 
 ```powershell
 New-ADOrganizationalUnit -Name "IT"        -Path "DC=lab,DC=local"
@@ -197,7 +190,7 @@ New-ADOrganizationalUnit -Name "Sales"     -Path "DC=lab,DC=local"
 New-ADOrganizationalUnit -Name "Computers" -Path "DC=lab,DC=local"
 ```
 
-**Create Security Groups**
+### Create Security Groups
 
 Right-click each OU → **New → Group**. Set Group scope to **Global**, Group type to **Security**.
 
@@ -208,7 +201,7 @@ New-ADGroup -Name "HR_Users"      -GroupScope Global -GroupCategory Security -Pa
 New-ADGroup -Name "Sales_Users"   -GroupScope Global -GroupCategory Security -Path "OU=Sales,DC=lab,DC=local"
 ```
 
-**Create User Accounts and Group Memberships**
+### Create User Accounts and Group Memberships
 
 > ⚠️ **Run the entire block at once** — not line by line. The `$password` variable must be defined before the `New-ADUser` commands execute. Select all, then paste the full block into PowerShell and press Enter.
 
@@ -244,9 +237,12 @@ Add-ADGroupMember -Identity "Sales_Users"   -Members "david.smith"
 
 ---
 
-### Step 5 — Configure Group Policy
+## Step 5 — Configure Group Policy
 
-Open **Group Policy Management** from **Tools** in Server Manager.
+Open **Group Policy Management** from the Tools menu in Server Manager on the **DC**.
+
+> **What is a Group Policy Object (GPO)?**
+> A GPO is a collection of settings applied automatically to every user or computer inside an OU. Password complexity requirements, screen lock timers, USB restrictions — all enforced from a single GPO across every machine without touching each one individually.
 
 1. Expand **Forest: lab.local → Domains → lab.local**.
 2. Right-click the **IT** OU → **Create a GPO in this domain and link it here**.
@@ -261,13 +257,16 @@ Open **Group Policy Management** from **Tools** in Server Manager.
 | Computer Config → Windows Settings → Security → Local Policies → Security Options | Interactive logon: Machine inactivity limit | 900 seconds |
 | Computer Config → Administrative Templates → System → Removable Storage Access | All removable storage classes: Deny all access | Enabled |
 
-**Test the GPO:** Join a second VM to `lab.local`, move its computer account to the Computers OU, run `gpupdate /force`, log in as `alice.chen`, and verify the screen lock takes effect after 15 minutes of inactivity.
+<img width="932" height="657" alt="gpo open" src="https://github.com/user-attachments/assets/e4047487-9a53-43d0-a41e-c511efc8acc6" />
+<img width="982" height="722" alt="gpo password enforce" src="https://github.com/user-attachments/assets/b12f23a6-2189-4723-ab25-a86a16062552" />
+<img width="976" height="715" alt="gpo lock" src="https://github.com/user-attachments/assets/e5c8c220-413c-4cef-9cfa-b275c05a2c04" />
+<img width="1297" height="716" alt="gpo deny storage device" src="https://github.com/user-attachments/assets/e40e0715-3922-4e4e-9d08-cee516d0b41e" />
 
 ---
 
 ### Step 6 — Common Help Desk Tasks
 
-Practice each task on the test accounts created in Step 4.
+Run these PowerShell commands on **DC**.
 
 **Reset a password**
 ```powershell
@@ -281,7 +280,7 @@ Set-ADUser -Identity "bob.patel" -ChangePasswordAtLogon $true
 Unlock-ADAccount -Identity "carol.jones"
 ```
 
-**Disable an account (offboarding)**
+**Disable an account**
 ```powershell
 # Disable — preserves account history and group memberships for audit
 Disable-ADAccount -Identity "david.smith"
@@ -378,20 +377,13 @@ Active Directory is also the **most targeted system in ransomware attacks**. Und
 
 ---
 
-## Portfolio Note
-
-Document everything you build. Record what commands you ran, what each step does, and what you learned. This lab is a direct answer to the interview question: *"Tell me about your Active Directory experience."*
-
----
-
 ## Resources
 
 - [Microsoft Docs — Active Directory Domain Services](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview)
 - [Microsoft Docs — Group Policy Overview](https://learn.microsoft.com/en-us/windows-server/networking/technologies/dhcp/dhcp-top)
 - [Azure Free Account](https://azure.microsoft.com/free)
 - [Windows Server 2025 Evaluation](https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2025)
-- [VirtualBox](https://www.virtualbox.org)
 
 ---
 
-*Lab 01 of the Identity & Access Management series.*
+> **Portfolio tip:** Document everything you build. Screenshot each completed step. When an interviewer asks about Active Directory experience — this lab with screenshots is your proof.
